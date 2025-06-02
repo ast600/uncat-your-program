@@ -3,7 +3,7 @@ lazy val V = _root_.scalafix.sbt.BuildInfo
 inThisBuild(
   List(
     scalaVersion := "2.13.16",
-    version := "1.0.0",
+    version := "1.0.1",
     organization := "dev.ast600",
     semanticdbEnabled := true,
     semanticdbVersion := scalafixSemanticdb.revision,
@@ -28,7 +28,11 @@ lazy val rules = (project in file("rules"))
 lazy val input = (project in file("input"))
   .settings(
     publish / skip := true,
-    libraryDependencies ++= Seq("org.typelevel" %% "mouse" % "1.3.2", zio)
+    libraryDependencies ++= Seq(
+      "org.typelevel" %% "mouse" % "1.3.2",
+      "org.typelevel" %% "cats-core" % "2.12.0",
+      zio
+    )
   )
 
 lazy val output = (project in file("output"))
