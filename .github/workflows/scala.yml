@@ -24,5 +24,5 @@ jobs:
       uses: sbt/setup-sbt@v1
     - name: Cache scala dependencies
       uses: coursier/cache-action@v6
-    - name: Run SBT pipeline
-      run: sbt ;scalafmtSbtCheck ;scalafmtCheckAll ;scalafixAll --check ;clean ;compile ;Test/compile ;test
+    - name: Start SBT server
+      run: sbt scalafmtSbtCheck scalafmtCheckAll "scalafixAll --check" clean compile Test/compile test
