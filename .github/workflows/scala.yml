@@ -20,5 +20,9 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         cache: 'sbt'
+    - name: Setup sbt
+      uses: sbt/setup-sbt@v1
+    - name: Cache scala dependencies
+      uses: coursier/cache-action@v6
     - name: Run SBT pipeline
       run: sbt ;scalafmtSbtCheck ;scalafmtCheckAll ;scalafixAll --check ;clean ;compile ;Test/compile ;test
