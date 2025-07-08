@@ -17,6 +17,13 @@ final class UncatYourProgram extends SemanticRule("UncatYourProgram") {
     SymbolMatcher.normalized("cats/syntax.EitherIdOps#asLeft")
   private val eitherLeftMapCatcher =
     SymbolMatcher.normalized("cats/syntax.EitherOps#leftMap")
+  private val zioMapCatcher = SymbolMatcher.normalized("zio.ZIO#map")
+  private val invalidNecCatcher =
+    SymbolMatcher.normalized("cats/syntax/ValidatedIdOpsBinCompat0#invalidNec")
+  private val validNecCatcher =
+    SymbolMatcher.normalized("cats/syntax/ValidatedIdOpsBinCompat0#validNec")
+  private val pureCatcher =
+    SymbolMatcher.normalized("cats/syntax/ApplicativeIdOps#pure")
 
   override def fix(implicit doc: SemanticDocument): Patch = {
     doc.tree.collect {
@@ -75,6 +82,98 @@ final class UncatYourProgram extends SemanticRule("UncatYourProgram") {
             ) :: Nil
           ) =>
         Patch.removeTokens(catsEitherSyntaxImport.tokens)
+      case zioApplyLeft @ Term.Apply(
+            Term.Select(Term.Name("ZIO"), Term.Name("succeed")),
+            Term.Apply(Term.Name("Left"), leftContents :: Nil) :: Nil
+          ) =>
+        Patch.replaceTree(zioApplyLeft, s"ZIO.left(${leftContents.syntax})")
+      case zioApplyRight @ Term.Apply(
+            Term.Select(Term.Name("ZIO"), Term.Name("succeed")),
+            Term.Apply(Term.Name("Right"), rightContents :: Nil) :: Nil
+          ) =>
+        Patch.replaceTree(zioApplyRight, s"ZIO.right(${rightContents.syntax})")
+      case zioMapCatcher(
+            x @ Term.Apply(
+              Term.Select(mappedTerm, Term.Name("map")),
+              Term.Select(Term.Name("Left"), Term.Name("apply")) :: Nil
+            )
+          ) =>
+        Patch.replaceTree(x, s"${mappedTerm.syntax}.asLeft")
+      case zioMapCatcher(
+            x @ Term.Apply(
+              Term.Select(mappedTerm, Term.Name("map")),
+              Term.Select(Term.Name("Right"), Term.Name("apply")) :: Nil
+            )
+          ) =>
+        Patch.replaceTree(x, s"${mappedTerm.syntax}.asRight")
+      case zioMapCatcher(
+            x @ Term.Apply(
+              Term.Select(mappedTerm, Term.Name("map")),
+              Term.AnonymousFunction(
+                Term.Apply(Term.Name("Right"), (_: Term.Placeholder) :: Nil)
+              ) :: Nil
+            )
+          ) =>
+        Patch.replaceTree(x, s"${mappedTerm.syntax}.asRight")
+      case zioMapCatcher(
+            x @ Term.Apply(
+              Term.Select(mappedTerm, Term.Name("map")),
+              Term.AnonymousFunction(
+                Term.Apply(Term.Name("Left"), (_: Term.Placeholder) :: Nil)
+              ) :: Nil
+            )
+          ) =>
+        Patch.replaceTree(x, s"${mappedTerm.syntax}.asLeft")
+      case invalidNecCatcher(
+            x @ Term.ApplyType(
+              Term.Select(extendedTerm, Term.Name("invalidNec")),
+              Type.Name(_) :: Nil
+            )
+          ) =>
+        Patch.replaceTree(x, s"Validated.invalidNec(${extendedTerm.syntax})")
+      case validNecCatcher(
+            x @ Term.ApplyType(
+              Term.Select(extendedTerm, Term.Name("validNec")),
+              Type.Name(_) :: Nil
+            )
+          ) =>
+        Patch.replaceTree(x, s"Validated.validNec(${extendedTerm.syntax})")
+      case catsValidatedSyntaxImport @ Import(
+            Importer(
+              Term.Select(
+                Term.Select(Term.Name("cats"), Term.Name("syntax")),
+                Term.Name("validated")
+              ),
+              _
+            ) :: Nil
+          ) =>
+        Patch.replaceTree(
+          catsValidatedSyntaxImport,
+          "import cats.data.Validated"
+        )
+      case pureCatcher(
+            x @ Term.ApplyType(
+              Term.Select(extendedTerm, Term.Name("pure")),
+              Type.Name(typeName) :: Nil
+            )
+          ) =>
+        Patch.replaceTree(
+          x,
+          s"Applicative[$typeName].pure(${extendedTerm.syntax})"
+        )
+      case catsApplicativeSyntaxImport @ Import(
+            Importer(
+              Term.Select(
+                Term.Select(Term.Name("cats"), Term.Name("syntax")),
+                Term.Name("applicative")
+              ),
+              _
+            ) :: Nil
+          ) =>
+        Patch.replaceTree(
+          catsApplicativeSyntaxImport,
+          "import cats.Applicative"
+        )
     }.asPatch
   }
 
