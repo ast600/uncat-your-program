@@ -12,6 +12,7 @@ inThisBuild(
 )
 
 lazy val zio = "dev.zio" %% "zio" % "2.1.19"
+lazy val cats = "org.typelevel" %% "cats-core" % "2.12.0"
 
 lazy val `uncat-your-program` = (project in file("."))
   .aggregate(rules, input, output, tests)
@@ -30,7 +31,7 @@ lazy val input = (project in file("input"))
     publish / skip := true,
     libraryDependencies ++= Seq(
       "org.typelevel" %% "mouse" % "1.3.2",
-      "org.typelevel" %% "cats-core" % "2.12.0",
+      cats,
       zio
     )
   )
@@ -38,7 +39,7 @@ lazy val input = (project in file("input"))
 lazy val output = (project in file("output"))
   .settings(
     publish / skip := true,
-    libraryDependencies += zio
+    libraryDependencies ++= Seq(cats, zio)
   )
 
 lazy val tests = (project in file("tests"))

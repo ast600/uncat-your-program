@@ -1,6 +1,8 @@
 package fix
 
+import cats.Applicative
 
+import cats.data.Validated
 
 
 import zio.ZIO
@@ -26,5 +28,28 @@ object UncatYourProgram {
     print(s"left: $l")
     print(s"right: $r")
     print(s"x is: $x")
+  }
+
+  def prettyZIOEitherTest(): Unit = {
+    val l = ZIO.left("Hey")
+    val r = ZIO.right(42)
+    val lf = ZIO.succeed("Yay").asLeft
+    val rf = ZIO.succeed(3).asRight
+    print(s"Apply left: $l")
+    print(s"Apply right: $r")
+    print(s"Map left: $lf")
+    print(s"Map right: $rf")
+  }
+
+  def unvalidatedTest(): Unit = {
+    val inv = Validated.validNec(42)
+    val v = Validated.invalidNec("hey")
+    println(s"Invalid: $inv")
+    println(s"Valid: $v")
+  }
+
+  def unpureTest(): Unit = {
+    val pure = Applicative[List].pure(42)
+    println(s"Pure: $pure")
   }
 }

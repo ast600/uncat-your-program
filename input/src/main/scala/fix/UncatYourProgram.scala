@@ -3,7 +3,9 @@ rule = UncatYourProgram
  */
 package fix
 
+import cats.syntax.applicative._
 import cats.syntax.either._
+import cats.syntax.validated._
 import mouse.boolean._
 import mouse.ignore
 import zio.ZIO
@@ -29,5 +31,28 @@ object UncatYourProgram {
     print(s"left: $l")
     print(s"right: $r")
     print(s"x is: $x")
+  }
+
+  def prettyZIOEitherTest(): Unit = {
+    val l = ZIO.succeed(Left("Hey"))
+    val r = ZIO.succeed(Right(42))
+    val lf = ZIO.succeed("Yay").map(Left.apply)
+    val rf = ZIO.succeed(3).map(Right(_))
+    print(s"Apply left: $l")
+    print(s"Apply right: $r")
+    print(s"Map left: $lf")
+    print(s"Map right: $rf")
+  }
+
+  def unvalidatedTest(): Unit = {
+    val inv = 42.validNec[String]
+    val v = "hey".invalidNec[Int]
+    println(s"Invalid: $inv")
+    println(s"Valid: $v")
+  }
+
+  def unpureTest(): Unit = {
+    val pure = 42.pure[List]
+    println(s"Pure: $pure")
   }
 }
